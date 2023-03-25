@@ -24,6 +24,7 @@ const provider = new GoogleAuthProvider();
 export const signInWithGoogle = () => {
     signInWithPopup(auth, provider)
     .then((result) => {
+        window.location.reload();
         const name = result.user.displayName;
         const email = result.user.email;
         const profilePic = result.user.photoURL;
