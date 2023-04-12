@@ -1,78 +1,128 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import './Comment.css';
+import Rating from '../Rating/Rating.js';
+import { useDispatch, useSelector } from 'react-redux';
+import Loading from "../LoadingError/Loading";
+import {
+    commentListAction,
+} from "../../redux/Actions/CommentActions";
+import Message from "../LoadingError/Error";
+import { Link } from "react-router-dom";
+import moment from "moment";
 
-// 1. Load comment data from Comments.JSON (format is JSON)
-// 2. Add a form to add a new comment
-// 3. Update the Comments.txt file with the new comment
-// 4. Display the comments in a list
 
+const Comment = (props) => {
+// function Comment(props) {
+    const [rating, setRating] = React.useState(0);
+    const [comment, setComment] = React.useState("");
+    const dispatch = useDispatch();
+    const commentList = useSelector((state) => state.commentList);
+    const { loading, error, comments } = commentList;
+    useEffect(() => {
+        dispatch(commentListAction(props.anime_id));
+    }, [dispatch, props.anime_id]);
 
-// code base on 4 steps above
-
-function Comment() {
-    // step1
-    const [comments, setComments] = React.useState([]);
-
-    React.useEffect(() => {
-        fetch('./Comments.json')
-            .then(res => res.json())
-            .then(data => setComments(data))
+    // const userLogin = useSelector((state) => state.userLogin);
+    // set userLogin random to test
+    const userLogin = {
+        userInfo: {
+            name: "test",
+            email: "test",
+        }
     }
-        , [])
-
-    // step2q
-    const [newComment, setNewComment] = React.useState({
-        name: '',
-        email: '',
-        body: ''
-    })
-
-    const handleNewComment = (e) => {
-        const name = e.target.name;
-        const value = e.target.value;
-        setNewComment({ ...newComment, [name]: value })
-    }
-
-    // step3
-    const handleAddComment = () => {
-        fetch('./Comments.json', {
-            method: 'POST',
-            body: JSON.stringify(newComment),
-            headers: {
-                'Content-type': 'application/json; charset=UTF-8',
-            },
-        })
-            .then((response) => response.json())
-            .then((json) => console.log(json))
-    }
+    const { userInfo } = userLogin;
+    const submitHandler = (e) => {
+        e.preventDefault();
+        // dispatch(
+        //     createReview(match.params.id, {
+        //         rating,
+        //         comment,
+        //     })
+        // );
+    };
 
     return (
         <div>
-            <h1>Comments</h1>
-            <div className="comment-container">
-                <div className="comment-form">
-                    <h3>Add a comment</h3>
-                    <input type="text" name="name" placeholder="Name" onChange={handleNewComment} />
-                    <input type="text" name="email" placeholder="Email" onChange={handleNewComment} />
-                    <textarea name="body" placeholder="Comment" onChange={handleNewComment} />
-                    <button onClick={handleAddComment}>Add Comment</button>
+            <div className='row my-5'>
+                <div className='col-md-6'>
+                    <h6 className='mb-3'>COMMENTS</h6>
+                    {comments.length === 0 && (
+                        <Message variant={'alert-info mt-3'}>No Reviews</Message>
+                    )}
+                    {/* check if comments.data != null */}
+                    {comments.data && comments.data.map((comment) => (
+                        <div key={comment._id}
+                            className="mb-5 mb-md-3 bg-light p-3 shadow-sm rounded">
+                            <strong>{comment.user_name}</strong>
+                            <Rating value={comment.rating} />
+                            <span>{moment(comment.createdAt).calendar()}</span>
+                            <div className="alert alert-info mt-3">
+                                {comment.comment}
+                            </div>
+                        </div>
+                    ))}
                 </div>
-                <div className="comment-list">
-                    <h3>Comments</h3>
-                    {
-                        comments.map(comment => <div className="comment">
-                            <h4>{comment.name}</h4>
-                            <p>{comment.body}</p>
-                        </div>)
-                    }
+
+                <div className="col-md-6">
+                    <h6>WRITE A CUSTOMER COMMENTS</h6>
+                    <div className="my-4">
+                        {/* {loadingCreateReview && <Loading />}
+                        {errorCreateReview && (
+                            <Message variant="alert-danger">
+                                {errorCreateReview}
+                            </Message>
+                        )} */}
+                    </div>
+                    {userInfo ? (
+                        <form onSubmit={submitHandler}>
+                            <div className="my-4">
+                                <strong>Rating</strong>
+                                <select
+                                    value={rating}
+                                    onChange={(e) => setRating(e.target.value)}
+                                    className="col-12 bg-light p-3 mt-2 border-0 rounded"
+                                >
+                                    <option value="">Select...</option>
+                                    <option value="1">1 - Poor</option>
+                                    <option value="2">2 - Fair</option>
+                                    <option value="3">3 - Good</option>
+                                    <option value="4">4 - Very Good</option>
+                                    <option value="5">5 - Excellent</option>
+                                </select>
+                            </div>
+                            <div className="my-4">
+                                <strong>Comment</strong>
+                                <textarea
+                                    row="3"
+                                    value={comment}
+                                    onChange={(e) => setComment(e.target.value)}
+                                    className="col-12 bg-light p-3 mt-2 border-0 rounded"
+                                ></textarea>
+                            </div>
+                            <div className="my-3">
+                                <button
+                                    // disabled={loadingCreateReview}
+                                    className="col-12 bg-black border-0 p-3 rounded text-white"
+                                >
+                                    SUBMIT
+                                </button>
+                            </div>
+                        </form>
+                    ) : (
+                        <div className="my-3">
+                            <Message variant={"alert-warning"}>
+                                Please{" "}
+                                <Link to="/login">
+                                    " <strong>Login</strong> "
+                                </Link>{" "}
+                                to write a comment{" "}
+                            </Message>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
-
-    )
-
-    
-
+        )
 
 }
 

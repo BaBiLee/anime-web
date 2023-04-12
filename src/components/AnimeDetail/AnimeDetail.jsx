@@ -143,7 +143,7 @@ function AnimeDetail() {
         <></>
       )}
 
-      <Comment />
+      <Comment anime_id={1} />
  
       
     </div>
